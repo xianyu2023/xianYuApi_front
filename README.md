@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 咸鱼API开放平台
 
 This project is initialized with [咸鱼API开放平台](https://pro.ant.design). Follow is the quick guide for how to use.
