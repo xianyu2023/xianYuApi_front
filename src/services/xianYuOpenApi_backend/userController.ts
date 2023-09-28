@@ -44,6 +44,14 @@ export async function getUserByIdUsingGET(
   });
 }
 
+/** getAkSk GET /api/user/get/akAndSk */
+export async function getAkSkUsingGET(options?: { [key: string]: any }) {
+  return request<API.BaseResponseMapstringobject>('/api/user/get/akAndSk', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
 /** getLoginUser GET /api/user/get/login */
 export async function getLoginUserUsingGET(options?: { [key: string]: any }) {
   return request<API.BaseResponseUserVO>('/api/user/get/login', {

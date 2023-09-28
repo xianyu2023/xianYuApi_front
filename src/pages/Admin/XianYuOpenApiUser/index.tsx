@@ -1,9 +1,3 @@
-import CreateModal from '@/pages/Admin/XianYuOpenApi/components/CreateModal';
-import {
-  addOpenApiUsingPOST, deleteOpenApiUsingPOST,
-  listOpenApiByPageUsingGET, offlineOpenApiUsingPOST, onlineOpenApiUsingPOST,
-  updateOpenApiUsingPOST
-} from '@/services/xianYuOpenApi_backend/openApiController';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
@@ -15,7 +9,14 @@ import {
 import '@umijs/max';
 import {Button, Drawer, message, Popconfirm} from 'antd';
 import React, { useRef, useState } from 'react';
-import UpdateModal from "@/pages/Admin/XianYuOpenApi/components/UpdateModal";
+import {
+  deleteUserUsingPOST,
+  listUserByPageUsingGET,
+  updateUserUsingPOST,
+  userRegisterUsingPOST
+} from "@/services/xianYuOpenApi_backend/userController";
+import UpdateModal from "@/pages/Admin/XianYuOpenApiUser/components/UpdateModal";
+import CreateModal from "@/pages/Admin/XianYuOpenApiUser/components/CreateModal";
 
 const TableList: React.FC = () => {
   /**
@@ -30,17 +31,17 @@ const TableList: React.FC = () => {
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [selectedRowsState, setSelectedRows] = useState<API.OpenApi[]>([]);
-  const [currentRow, setCurrentRow] = useState<API.OpenApi>();
+  const [selectedRowsState, setSelectedRows] = useState<API.UserVO[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.UserVO>();
   /**
    * @en-US Add node
-   * @zh-CN 添加节点
+   * @zh-CN 新增用户
    * @param fields
    */
-  const handleAdd = async (fields: API.OpenApi) => {
+  const handleAdd = async (fields: API.UserRegisterRequest) => {
     const hide = message.loading('正在添加');
     try {
-      await addOpenApiUsingPOST({
+      await userRegisterUsingPOST({
         ...fields,
       });
       hide();
@@ -57,18 +58,18 @@ const TableList: React.FC = () => {
 
   /**
    * @en-US Update node
-   * @zh-CN 更新节点
+   * @zh-CN 用户修改
    *
    * @param fields
    */
-  const handleUpdate = async (fields: API.OpenApiUpdateRequest) => {
+  const handleUpdate = async (fields: API.UserUpdateRequest) => {
     if (!currentRow) {
       return;
     }
     const hide = message.loading('修改中');
     console.log('id:',fields.id)
     try {
-      await updateOpenApiUsingPOST({
+      await updateUserUsingPOST({
         id: currentRow.id,
         ...fields,
       });
@@ -84,19 +85,22 @@ const TableList: React.FC = () => {
 
   /**
    *  Delete node
-   * @zh-CN 发布节点
-   *
+   * @zh-CN 用户解冻
+   *   0-正常
+   *   1-封号
+   *  2-永久封号
    * @param record
    */
   const handleOnline = async (record: API.IdRequest) => {
-    const hide = message.loading('正在发布');
+    const hide = message.loading('正在解冻');
     if (!record) return true;
     try {
-      await onlineOpenApiUsingPOST({
-        id: record.id
+      await updateUserUsingPOST({
+        id: record.id,
+        status: 0,
       });
       hide();
-      message.success('发布成功');
+      message.success('解冻成功');
       actionRef.current?.reload();
       return true;
     } catch (error: any) {
@@ -108,19 +112,20 @@ const TableList: React.FC = () => {
 
   /**
    *  Delete node
-   * @zh-CN 下线节点
+   * @zh-CN  冻结用户
    *
    * @param record
    */
   const handleOffline = async (record: API.IdRequest) => {
-    const hide = message.loading('正在下线');
+    const hide = message.loading('正在封号');
     if (!record) return true;
     try {
-      await offlineOpenApiUsingPOST({
-        id: record.id
+      await updateUserUsingPOST({
+        id: record.id,
+        status: 1,
       });
       hide();
-      message.success('下线成功');
+      message.success('封号成功');
       actionRef.current?.reload();
       return true;
     } catch (error: any) {
@@ -134,7 +139,7 @@ const TableList: React.FC = () => {
 
   /**
    *  Delete node
-   * @zh-CN 删除节点
+   * @zh-CN 删除用户
    *
    * @param record
    */
@@ -142,7 +147,7 @@ const TableList: React.FC = () => {
     const hide = message.loading('正在删除');
     if (!record) return true;
     try {
-      await deleteOpenApiUsingPOST({
+      await deleteUserUsingPOST({
         id: record.id
       });
       hide();
@@ -171,8 +176,15 @@ const TableList: React.FC = () => {
    * @en-US International configuration
    * @zh-CN 国际化配置
    * */
+  //  createTime?: string;
 
-  const columns: ProColumns<API.OpenApi>[] = [
+
+    //     updateTime?: string;
+
+
+
+
+  const columns: ProColumns<API.UserVO>[] = [
     {
       title: 'ID',
       dataIndex: 'id',
@@ -182,8 +194,8 @@ const TableList: React.FC = () => {
       width: 65
     },
     {
-      title: '名称',
-      dataIndex: 'name',
+      title: '用户昵称',
+      dataIndex: 'userName',
       //规则
       // tip: 'The rule name is the unique key',
       valueType: 'text',
@@ -192,71 +204,63 @@ const TableList: React.FC = () => {
         rules: [{
           required: true,
           //可不用message，默认就是'请输入+text'
-          message: '输入接口名称',
+          message: '输入名称',
         }]
       }
     },
     {
-      title: '描述',
-      dataIndex: 'description',
+      title: '用户账号',
+      dataIndex: 'userAccount',
       //textarea:副文本编辑器（内容比较多的情况）
       valueType: 'textarea',
       ellipsis: true,
     },
     {
-      title: '地址',
-      dataIndex: 'url',
-      valueType: 'jsonCode',
-      copyable: true,
+      title: '头像',
+      dataIndex: 'userAvatar',
+      //textarea:副文本编辑器（内容比较多的情况）
+      valueType: 'textarea',
       ellipsis: true,
-      width: 75
     },
+      {
+        title: '状态',
+        dataIndex: 'status',
+        hideInForm: true,
+        width: 65,
+        valueEnum: {
+          0: {
+            text: '正常',
+            status: 'Processing',
+          },
+          1: {
+            text: '封号',
+            status: 'Default',
+          },
+          2: {
+            text: '永久封号',
+            status: 'Default',
+          },
+        },
+      },
     {
-      title: '状态',
-      dataIndex: 'status',
+      title: '性别',
+      dataIndex: 'gender',
       hideInForm: true,
       width: 65,
       valueEnum: {
         0: {
-          text: '下线',
-          status: 'Default',
+          text: '男',
         },
         1: {
-          text: '上线',
-          status: 'Processing',
+          text: '女',
         },
       },
     },
     {
-      title: '请求方式',
-      dataIndex: 'method',
+      title: '用户角色',
+      dataIndex: 'userRole',
       valueType: 'text',
       width: 75
-    },
-    {
-      title: '请求参数',
-      dataIndex: 'requestParams',
-      //jsonCode，现成的代码编辑器
-      valueType: 'jsonCode',
-      copyable: true,
-      ellipsis: true,
-      width: 75
-    },
-    {
-      title: '请求头',
-      dataIndex: 'requestHeader',
-      valueType: 'jsonCode',
-      copyable: true,
-      ellipsis: true,
-      width: 75
-    },
-    {
-      title: '响应',
-      dataIndex: 'responseHeader',
-      valueType: 'textarea',
-      copyable: true,
-      ellipsis: true,
-      hideInTable: true,
     },
     {
       title: '创建时间',
@@ -274,7 +278,7 @@ const TableList: React.FC = () => {
       width: 100
     },
     {
-      title: '接口操作',
+      title: '操作',
       dataIndex: 'option',
       valueType: 'option',
       render: (_, record) => [
@@ -288,7 +292,7 @@ const TableList: React.FC = () => {
           修改
         </a>,
 
-        record.status === 0 ? (
+        record.status === 1 ? (
           <a
           key={"online"}
           onClick={() => {
@@ -296,10 +300,10 @@ const TableList: React.FC = () => {
             handleOnline(record);
           }}
         >
-          发布
+          解冻
         </a> ): null,
 
-        record.status === 1 ? (
+        record.status === 0 ? (
           <a
           type={"text"}
           key={"offline"}
@@ -309,7 +313,7 @@ const TableList: React.FC = () => {
             handleOffline(record);
           }}
         >
-          下线
+          封号
         </a> ): null,
 
         <Popconfirm
@@ -317,8 +321,8 @@ const TableList: React.FC = () => {
           title={"是否删除？"}
           onConfirm={confirm}
           onCancel={cancel}
-          okText={"Yes"}
           cancelText={"No"}
+          okText={"Yes"}
         >
           <a
             type={"text"}
@@ -359,7 +363,7 @@ const TableList: React.FC = () => {
         //取出请求参数params的所有并封装成一个参数传入我们请求函数中
         request={async (params) => {
           //需要同步调用，async异步+await
-          const res = await listOpenApiByPageUsingGET({
+          const res = await listUserByPageUsingGET({
             ...params,
           });
           if (res?.data) {
@@ -445,15 +449,15 @@ const TableList: React.FC = () => {
         }}
         closable={false}
       >
-        {currentRow?.name && (
+        {currentRow?.userName && (
           <ProDescriptions<API.RuleListItem>
             column={2}
-            title={currentRow?.name}
+            title={currentRow?.userName}
             request={async () => ({
               data: currentRow || {},
             })}
             params={{
-              id: currentRow?.name,
+              id: currentRow?.userName,
             }}
             columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
           />

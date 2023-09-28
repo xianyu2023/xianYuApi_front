@@ -5,9 +5,9 @@ import React from 'react';
 //引入属性
 export type Props = {
   //复用columns
-  columns: ProColumns<API.OpenApi>[];
+  columns: ProColumns<API.User>[];
   onCancel: () => void;
-  onSubmit: (values: API.OpenApiAddRequest) => Promise<void>;
+  onSubmit: (values: API.UserRegisterRequest) => Promise<void>;
   updateModalOpen: boolean;
 };
 const CreateModal: React.FC<Props> = (props) => {

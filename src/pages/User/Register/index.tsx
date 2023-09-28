@@ -8,12 +8,11 @@ LoginForm,
 ProFormText
 } from '@ant-design/pro-components';
 import { useEmotionCss } from '@ant-design/use-emotion-css';
-import { Helmet,useModel } from '@umijs/max';
+import { Helmet } from '@umijs/max';
 import { Alert,message,Tabs } from 'antd';
 import React,{ useState } from 'react';
 import Settings from '../../../../config/defaultSettings';
-import {Link} from "umi";
-import {userLoginUsingPOST} from "@/services/xianYuOpenApi_backend/userController";
+import {userRegisterUsingPOST} from "@/services/xianYuOpenApi_backend/userController";
 const LoginMessage: React.FC<{
   content: string;
 }> = ({ content }) => {
@@ -28,10 +27,9 @@ const LoginMessage: React.FC<{
     />
   );
 };
-const Login: React.FC = () => {
+const Register: React.FC = () => {
   const [userLoginState] = useState<API.LoginResult>({});
   const [type, setType] = useState<string>('account');
-  const { setInitialState } = useModel('@@initialState');
   const containerClassName = useEmotionCss(() => {
     return {
       display: 'flex',
@@ -43,27 +41,23 @@ const Login: React.FC = () => {
       backgroundSize: '100% 100%',
     };
   });
+
+
   const handleSubmit = async (values: API.UserLoginRequest) => {
     try {
-      // 登录
-      const res = await userLoginUsingPOST({
+      // 注册
+      const res = await userRegisterUsingPOST({
         ...values,
       });
-      if (res.data) {
-        const defaultLoginSuccessMessage = '登录成功！';
-        message.success(defaultLoginSuccessMessage);
-        // 登录成功后处理
+      if (res?.data && res?.code === 0) {
+        // 注册成功
+        message.info("注册成功")
+        // 切换到登录
         const urlParams = new URL(window.location.href).searchParams;
-        // 重定向到 redirect 参数所在的位置
         location.href = urlParams.get('redirect') || '/';
-        // 保存登录状态
-        setInitialState({
-          loginUser: res.data,
-        });
       }
-    } catch (error) {
-      const defaultLoginFailureMessage = '登录失败，请重试！';
-      console.log(error);
+    } catch (error: any) {
+      const defaultLoginFailureMessage = '注册失败，请重试！';
       message.error(defaultLoginFailureMessage);
     }
   };
@@ -72,7 +66,7 @@ const Login: React.FC = () => {
     <div className={containerClassName}>
       <Helmet>
         <title>
-          {'登录'}- {Settings.title}
+          {'注册'}- {Settings.title}
         </title>
       </Helmet>
 
@@ -83,6 +77,11 @@ const Login: React.FC = () => {
         }}
       >
         <LoginForm
+          submitter={{
+            searchConfig: {
+              submitText: '注册'
+            }
+          }}
           contentStyle={{
             minWidth: 280,
             maxWidth: '75vw',
@@ -101,7 +100,7 @@ const Login: React.FC = () => {
             items={[
               {
                 key: 'account',
-                label: '账户密码登录',
+                label: '注册账号',
               },
             ]}
           />
@@ -139,30 +138,27 @@ const Login: React.FC = () => {
                   },
                 ]}
               />
+              <ProFormText.Password
+                name="checkPassword"
+                fieldProps={{
+                  size: 'large',
+                  prefix: <LockOutlined />,
+                }}
+                placeholder={'确认密码: ant.design'}
+                rules={[
+                  {
+                    required: true,
+                    message: '确认密码必填！',
+                  },
+                ]}
+              />
             </>
           )}
 
-          {status === 'error' && loginType === 'mobile' && <LoginMessage content="验证码错误" />}
-          {type === 'mobile' && (
-            <>
-            </>
-          )}
-          <div
-            style={{
-              marginBottom: 24,
-            }}
-          >
-            <Link style={{
-              float: 'right',
-              fontSize: 'large',
-            }} to={"/user/register"}>
-                注册
-            </Link>
-          </div>
         </LoginForm>
       </div>
       <Footer />
     </div>
   );
 };
-export default Login;
+export default Register;

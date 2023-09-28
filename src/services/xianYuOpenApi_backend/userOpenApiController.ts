@@ -47,6 +47,29 @@ export async function getUserOpenApiByIdUsingGET(
   });
 }
 
+/** getUserOpenApiRelation GET /api/userOpenApi/get/relation */
+export async function getUserOpenApiRelationUsingGET(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getUserOpenApiRelationUsingGETParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseboolean>('/api/userOpenApi/get/relation', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** getUserOpenApiByUserId GET /api/userOpenApi/get/relation/userId */
+export async function getUserOpenApiByUserIdUsingGET(options?: { [key: string]: any }) {
+  return request<API.BaseResponseListUserOpenApiVO>('/api/userOpenApi/get/relation/userId', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
 /** listUserOpenApi GET /api/userOpenApi/list */
 export async function listUserOpenApiUsingGET(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

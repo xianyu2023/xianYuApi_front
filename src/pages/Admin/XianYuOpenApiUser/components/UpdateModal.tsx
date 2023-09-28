@@ -4,11 +4,11 @@ import { Modal } from 'antd';
 import React, {useEffect, useRef} from 'react';
 //引入属性
 export type Props = {
-  values: API.OpenApi;
+  values: API.User;
   //复用columns
-  columns: ProColumns<API.OpenApi>[];
+  columns: ProColumns<API.UserVO>[];
   onCancel: () => void;
-  onSubmit: (values: API.OpenApiUpdateRequest) => Promise<void>;
+  onSubmit: (values: API.UserUpdateRequest) => Promise<void>;
   updateModalOpen: boolean;
 };
 const UpdateModal: React.FC<Props> = (props) => {
